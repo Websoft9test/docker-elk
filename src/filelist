@@ -1,3 +1,5 @@
-docker-compose.yml
-script/test.sh
-docker
+elasticsearch
+extensions
+kibana
+logstash
+docker-stack.yml
