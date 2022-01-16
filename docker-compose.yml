@@ -1,19 +1,26 @@
+# refer repository: https://github.com/deviantony/docker-elk
+# image: https://hub.docker.com/_/elasticsearch
+# docs: https://www.elastic.co/guide/en/elastic-stack-get-started/current/get-started-docker.html
+# docs: https://www.elastic.co/guide/en/logstash/current/docker-config.html
+
 version: '3.8'
 
 services:
 
   elasticsearch:
     image: elasticsearch:${APP_VERSION}
-    container_name: ${APP_CONTAINER_NAME}-elasticsearch
+    container_name: ${APP_NAME}-elasticsearch
+    restart: always
     volumes:
       - ./src/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
-      - ${VOLUMES_PATH_PREFIX}/elasticsearch/data:/usr/share/elasticsearch/data
+      - elasticsearch:/usr/share/elasticsearch/data
     ports:
-      - ${ELASTICSEARCH_PORT}:9200
-      - 9300:9300
+      - ${DB_ES_HTTP_PORT}:9200
+      - ${DB_ES_TCP_PORT}:9300
     environment:
       ES_JAVA_OPTS: "-Xmx256m -Xms256m"
-      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+      ELASTIC_USERNAME: ${DB_ES_USER}
+      ELASTIC_PASSWORD: ${DB_ES_PASSWORD}
       TAKE_FILE_OWNERSHIP: "1"
       # Use single node discovery in order to disable production mode and avoid bootstrap checks.
       # see: https://www.elastic.co/guide/en/elasticsearch/reference/current/bootstrap-checks.html
@@ -21,30 +28,47 @@ services:
 
   logstash:
     image: logstash:${APP_VERSION}
-    container_name: ${APP_CONTAINER_NAME}-logstash
+    container_name: ${APP_NAME}-logstash
+    restart: always
     volumes:
       - ./src/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
       - ./src/logstash/pipeline:/usr/share/logstash/pipeline
     ports:
-      - ${LOGSTASH_PORT}:5044
-      - 5000:5000/tcp
-      - 5000:5000/udp
-      - 9600:9600
+      - ${MQ_LOGSTASH_API_PORT}:9600
+      - ${MQ_LOGSTASH_TCP_PORT}:5000/tcp
+      - ${MQ_LOGSTASH_TCP_PORT}:5000/udp
+      - ${MQ_LOGSTASH_BEATS_PORT}:5044
     environment:
       LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+      MONITORING_ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+      MONITORING_ELASTICSEARCH_USERNAME: ${DB_ES_USER}
+      MONITORING_ELASTICSEARCH_PASSWORD: ${DB_ES_PASSWORD}
+      HTTP_HOST: "0.0.0.0"
     depends_on:
       - elasticsearch
 
   kibana:
     image: kibana:${APP_VERSION}
-    container_name: ${APP_CONTAINER_NAME}-kibana
+    container_name: ${APP_NAME}-kibana
+    restart: always
     volumes:
       - ./src/kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml
+    environment:
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+      ELASTICSEARCH_USERNAME: ${DB_ES_USER}
+      ELASTICSEARCH_PASSWORD: ${DB_ES_PASSWORD}
+      SERVER_HOST: "0.0.0.0"
+      SERVER_NAME: "kibana"
     ports:
       - ${APP_PORT}:5601
     depends_on:
       - elasticsearch
 
+volumes:
+  logstash:
+  kibana:
+  elasticsearch:
+
 networks:
   default:
-    name: ${APP_NETWORK}
+    name: ${APP_NAME}
