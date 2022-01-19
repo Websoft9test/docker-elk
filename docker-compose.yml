@@ -40,11 +40,7 @@ services:
       - ${MQ_LOGSTASH_BEATS_PORT}:5044
     environment:
       LS_JAVA_OPTS: "-Xmx256m -Xms256m"
-      MONITORING_ENABLED: "true"
-      MONITORING_ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
-      MONITORING_ELASTICSEARCH_USERNAME: ${DB_ES_USER}
-      MONITORING_ELASTICSEARCH_PASSWORD: ${DB_ES_PASSWORD}
-      HTTP_HOST: "0.0.0.0"
+    user: root
     depends_on:
       - elasticsearch
 
