@@ -11,14 +11,18 @@ ELK 即 Elastic Stack， 它是官方标准的名称。
     ```
     sysctl -w vm.max_map_count=262144
     ```
-2. 
+
 ## 账号密码
 
-ALL default username is elastic, password is changeme.  
-
-ES 和 Logstash 都会与这个账号密码有关
+ES 和 Kibana 可以通过env 设置密码。 Logstash 需手工到 pipeline 中设置密码
 
 ## 环境变量
 
 通过配置文件或容器运行时带入均可，配置项与容器环境变量参数的对应关系[参考](https://www.elastic.co/guide/en/logstash/current/docker-config.html#docker-env-config)
+
+## FAQ
+
+#### 启动时间多久？
+
+3-8 分钟
 

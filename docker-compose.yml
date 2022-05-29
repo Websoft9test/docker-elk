@@ -7,6 +7,23 @@ version: '3.8'
 
 services:
 
+  kibana:
+    image: kibana:${APP_VERSION}
+    container_name: ${APP_NAME}
+    restart: always
+    volumes:
+      - ./src/kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml
+    environment:
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+      ELASTICSEARCH_USERNAME: ${APP_USER}
+      ELASTICSEARCH_PASSWORD: ${APP_PASSWORD}
+      SERVER_HOST: "0.0.0.0"
+      SERVER_NAME: "kibana"
+    ports:
+      - ${APP_PORT}:5601
+    depends_on:
+      - elasticsearch
+
   elasticsearch:
     image: elasticsearch:${APP_VERSION}
     container_name: ${APP_NAME}-elasticsearch
@@ -19,8 +36,8 @@ services:
       - ${DB_ES_TCP_PORT}:9300
     environment:
       ES_JAVA_OPTS: "-Xmx256m -Xms256m"
-      ELASTIC_USERNAME: ${DB_ES_USER}
-      ELASTIC_PASSWORD: ${DB_ES_PASSWORD}
+      ELASTIC_USERNAME: ${APP_USER}
+      ELASTIC_PASSWORD: ${APP_PASSWORD}
       TAKE_FILE_OWNERSHIP: "1"
       # Use single node discovery in order to disable production mode and avoid bootstrap checks.
       # see: https://www.elastic.co/guide/en/elasticsearch/reference/current/bootstrap-checks.html
@@ -41,23 +58,6 @@ services:
     environment:
       LS_JAVA_OPTS: "-Xmx256m -Xms256m"
     user: root
-    depends_on:
-      - elasticsearch
-
-  kibana:
-    image: kibana:${APP_VERSION}
-    container_name: ${APP_NAME}-kibana
-    restart: always
-    volumes:
-      - ./src/kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml
-    environment:
-      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
-      ELASTICSEARCH_USERNAME: ${DB_ES_USER}
-      ELASTICSEARCH_PASSWORD: ${DB_ES_PASSWORD}
-      SERVER_HOST: "0.0.0.0"
-      SERVER_NAME: "kibana"
-    ports:
-      - ${APP_PORT}:5601
     depends_on:
       - elasticsearch
 
