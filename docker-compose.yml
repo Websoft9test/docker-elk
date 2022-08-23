@@ -20,7 +20,7 @@ services:
       SERVER_HOST: "0.0.0.0"
       SERVER_NAME: "kibana"
     ports:
-      - ${APP_PORT}:5601
+      - ${APP_HTTP_PORT}:5601
     depends_on:
       - elasticsearch
 
